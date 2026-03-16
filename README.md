@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ALGHOSIATRANSPORT - Chauffeur Privé</title>
+<title>AL GHOSIA TRANSPORT - Chauffeur Privé</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,7 +12,7 @@
 
 <header>
 
-<h1>ALGHOSIATRANSPORT</h1>
+<h1>AL GHOSIA TRANSPORT</h1>
 
 <nav>
 <a href="#cars">Véhicules</a>
@@ -102,7 +102,7 @@
 
 <footer>
 
-<p>© 2025 ALGHOSIATRANSPORT</p>
+<p>© 2025 AL GHOSIA TRANSPORT</p>
 
 </footer>
 
