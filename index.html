@@ -924,7 +924,7 @@
       </div>
       <div class="contact-item">
         <span class="c-label">Email</span>
-        <span class="c-val"><a href="/cdn-cgi/l/email-protection#f39e9c9c9dc4cbc5b39f9a8596dd9581" style="color:var(--gold);text-decoration:none;"><span class="__cf_email__" data-cfemail="5c313333326b646a1c30352a39723a2e">[email&#160;protected]</span></a></span>
+        <span class="c-val">moon786@live.fr</span>
       </div>
       <div class="contact-item">
         <span class="c-label">Zone de service</span>
@@ -951,119 +951,114 @@
 </footer>
 
 <script>
-  // ── Tarification basée sur trajets réels ──
+document.addEventListener('DOMContentLoaded', function() {
 
-  // Prix de base BYD pour chaque trajet fixe
-  // AMG = BYD + 30% arrondi
+  // ══════════════════════════════════════════
+  // TARIFICATION — SIMULATEUR
+  // ══════════════════════════════════════════
+
   const FIXED_ROUTES = {
-    orly:        { label: 'Paris → Orly',              byd: 50,  bmw: 65,  amg: 68,  audi: 40,  km: 23 },
-    cdg:         { label: 'Paris → CDG',               byd: 60,  bmw: 75,  amg: 81,  audi: 50,  km: 30 },
-    disney_paris:{ label: 'Paris → Disneyland',        byd: 80,  bmw: 95,  amg: 108, audi: 65,  km: 40 },
-    cdg_disney:  { label: 'CDG → Disneyland',          byd: 60,  bmw: 75,  amg: 81,  audi: 50,  km: 35 },
-    orly_disney: { label: 'Orly → Disneyland',         byd: 70,  bmw: 85,  amg: 95,  audi: 58,  km: 45 },
+    orly:        { label: 'Paris → Orly',         byd: 50, bmw: 65, amg: 68, audi: 40, km: 23 },
+    cdg:         { label: 'Paris → CDG',           byd: 60, bmw: 75, amg: 81, audi: 50, km: 30 },
+    disney_paris:{ label: 'Paris → Disneyland',   byd: 80, bmw: 95, amg: 108,audi: 65, km: 40 },
+    cdg_disney:  { label: 'CDG → Disneyland',      byd: 60, bmw: 75, amg: 81, audi: 50, km: 35 },
+    orly_disney: { label: 'Orly → Disneyland',     byd: 70, bmw: 85, amg: 95, audi: 58, km: 45 },
   };
-
-  // Pour "Autre destination" : tarif au km
-  const PER_KM = { byd: 1.8, amg: 2.6 };
-  const BASE    = { byd: 15,  amg: 25  };
-  const MIN     = { byd: 35,  amg: 55  };
-
-  function getAmg(bydPrice) {
-    return Math.round(bydPrice * 1.35);
-  }
-
-  function computeCustom(car, km) {
-    const price = BASE[car] + km * PER_KM[car];
-    return Math.max(MIN[car], Math.round(price));
-  }
 
   function calcPrice() {
     const car   = document.getElementById('carSelect').value;
     const route = document.getElementById('routeSelect').value;
-    const km    = parseInt(document.getElementById('kmRange').value);
-
-    let price = 0;
+    const km    = parseInt(document.getElementById('kmRange').value) || 30;
+    let price   = 0;
 
     if (route === 'custom') {
       document.getElementById('kmField').style.display = 'block';
-      const perKmRates = { byd: 1.8, amg: 2.6, bmw: 2.2, audi: 1.5 };
-      const baseRates  = { byd: 15,  amg: 25,  bmw: 20,  audi: 12  };
-      const minRates   = { byd: 35,  amg: 55,  bmw: 45,  audi: 30  };
-      price = Math.max(minRates[car], Math.round(baseRates[car] + km * perKmRates[car]));
+      const perKm = { byd: 1.8, amg: 2.6, bmw: 2.2, audi: 1.5 };
+      const base  = { byd: 15,  amg: 25,  bmw: 20,  audi: 12  };
+      const min   = { byd: 35,  amg: 55,  bmw: 45,  audi: 30  };
+      price = Math.max(min[car], Math.round((base[car] || 15) + km * (perKm[car] || 1.8)));
     } else {
       document.getElementById('kmField').style.display = 'none';
-      const routeData = FIXED_ROUTES[route];
-      price = routeData[car] || routeData.byd;
+      const r = FIXED_ROUTES[route];
+      price = (r && r[car]) ? r[car] : (r ? r.byd : 50);
     }
 
-    // Update price display
     const el = document.getElementById('priceResult');
-    el.textContent = price + ' €';
-
-    // Flash animation
-    el.animate([
-      { transform: 'scale(1.18)', color: '#E8C97A' },
-      { transform: 'scale(1)',    color: '#C9A84C' }
-    ], { duration: 250, easing: 'ease-out' });
-
+    if (el) {
+      el.textContent = price + ' €';
+      el.animate([
+        { transform: 'scale(1.15)', color: '#E8C97A' },
+        { transform: 'scale(1)',    color: '#C9A84C'  }
+      ], { duration: 220, easing: 'ease-out' });
+    }
     updateGrille(car);
   }
 
   function updateGrille(selectedCar) {
+    const el = document.getElementById('dynamic-rows');
+    if (!el) return;
+    const LABELS = { byd:'BYD Seal', amg:'Mercedes AMG', bmw:'BMW Série 5', audi:'Audi A3' };
+    const selectedRoute = document.getElementById('routeSelect') ? document.getElementById('routeSelect').value : '';
     const rows = [];
 
-    // Affiche tous les trajets fixes pour le véhicule sélectionné
     Object.entries(FIXED_ROUTES).forEach(([key, r]) => {
       const price = r[selectedCar] || r.byd;
-      const isHighlighted = (key === document.getElementById('routeSelect').value);
+      const highlighted = (key === selectedRoute);
       rows.push(`
-        <div class="p-row" style="${isHighlighted ? 'background:rgba(201,168,76,.09);margin:0 -.5rem;padding:.9rem .5rem;' : ''}">
+        <div class="p-row" style="${highlighted ? 'background:rgba(201,168,76,.09);margin:0 -.5rem;padding:.9rem .5rem;' : ''}">
           <div>
-            <div class="p-service" style="${isHighlighted ? 'color:var(--gold-light);font-weight:500;' : ''}">${r.label}</div>
-            <div class="p-car">${({byd:'BYD Seal',amg:'Mercedes AMG',bmw:'BMW Série 5',audi:'Audi A3'}[selectedCar])} · ~${r.km} km</div>
+            <div class="p-service" style="${highlighted ? 'color:var(--gold-light);font-weight:500;' : ''}">${r.label}</div>
+            <div class="p-car">${LABELS[selectedCar] || 'BYD Seal'} · ~${r.km} km</div>
           </div>
-          <div class="p-price" style="${isHighlighted ? 'font-size:1.1rem;' : ''}">${price} €</div>
+          <div class="p-price" style="${highlighted ? 'font-size:1.1rem;' : ''}">${price} €</div>
         </div>`);
     });
 
-    // Ligne "Autre destination"
     rows.push(`
-      <div class="p-row" style="border-top: 1px dashed rgba(201,168,76,.2); margin-top:.5rem; padding-top:.5rem;">
+      <div class="p-row" style="border-top:1px dashed rgba(201,168,76,.2);margin-top:.5rem;padding-top:.5rem;">
         <div>
           <div class="p-service" style="color:var(--text-muted)">Autre destination</div>
-          <div class="p-car">Prix au km · ${selectedCar === 'byd' ? '1,80 €/km' : '2,60 €/km'}</div>
+          <div class="p-car">Prix au km · ${selectedCar==='amg'?'2,60':selectedCar==='bmw'?'2,20':selectedCar==='audi'?'1,50':'1,80'} €/km</div>
         </div>
         <div class="p-price" style="font-size:.85rem;">Sur devis</div>
       </div>`);
 
-    document.getElementById('dynamic-rows').innerHTML = rows.join('');
+    el.innerHTML = rows.join('');
   }
 
-  // Attach events
-  window.addEventListener('load', function() {
-    calcPrice();
+  // Attach simulateur events
+  const carSel  = document.getElementById('carSelect');
+  const rtSel   = document.getElementById('routeSelect');
+  const paxSel  = document.getElementById('paxSelect');
+  const kmRange = document.getElementById('kmRange');
 
-    document.getElementById('carSelect').addEventListener('change', calcPrice);
-    document.getElementById('routeSelect').addEventListener('change', calcPrice);
-    document.getElementById('paxSelect').addEventListener('change', calcPrice);
-    document.getElementById('kmRange').addEventListener('input', function() {
-      document.getElementById('kmLabel').textContent = this.value;
-      calcPrice();
-    });
+  if (carSel)  carSel.addEventListener('change', calcPrice);
+  if (rtSel)   rtSel.addEventListener('change', calcPrice);
+  if (paxSel)  paxSel.addEventListener('change', calcPrice);
+  if (kmRange) kmRange.addEventListener('input', function() {
+    const lbl = document.getElementById('kmLabel');
+    if (lbl) lbl.textContent = this.value;
+    calcPrice();
   });
 
-  // ── WhatsApp booking form ──
-  function sendWhatsApp(e) {
-    e.preventDefault();
-    const nom   = document.querySelector('input[placeholder="Votre nom"]').value || 'Non renseigné';
-    const tel   = document.querySelector('input[type=tel]').value || 'Non renseigné';
-    const dep   = document.querySelector('input[placeholder="Départ"]').value || 'Non renseigné';
-    const arr   = document.querySelector('input[placeholder="Arrivée"]').value || 'Non renseigné';
-    const car   = document.querySelectorAll('.booking-form select')[0].value;
-    const dt    = document.querySelector('input[type=datetime-local]').value || 'Non renseigné';
-    const notes = document.querySelector('textarea').value || '';
+  // Init simulateur
+  calcPrice();
 
-    const msg = `*Reservation Al Ghosia Transport*\n\n` +
+  // ══════════════════════════════════════════
+  // WHATSAPP BOOKING FORM
+  // ══════════════════════════════════════════
+  window.sendWhatsApp = function(e) {
+    e.preventDefault();
+    const nom   = document.querySelector('input[placeholder="Votre nom"]')?.value || 'Non renseigné';
+    const tel   = document.querySelector('input[type=tel]')?.value || 'Non renseigné';
+    const dep   = document.querySelector('input[placeholder="Départ"]')?.value || 'Non renseigné';
+    const arr   = document.querySelector('input[placeholder="Arrivée"]')?.value || 'Non renseigné';
+    const car   = document.querySelectorAll('.booking-form select')[0]?.value || '';
+    const dt    = document.querySelector('input[type=datetime-local]')?.value || 'Non renseigné';
+    const notes = document.querySelector('textarea')?.value || '';
+
+    const msg =
+      `*Reservation Al Ghosia Transport*\n\n` +
       `*Nom :* ${nom}\n` +
       `*Tel :* ${tel}\n` +
       `*Depart :* ${dep}\n` +
@@ -1073,21 +1068,21 @@
       (notes ? `*Notes :* ${notes}\n` : '') +
       `\nMerci de confirmer la disponibilite.`;
 
-    const encoded = encodeURIComponent(msg);
-    window.open(`https://wa.me/33609241327?text=${encoded}`, '_blank');
-  }
-
-  // ══════════════════════════════════════════
-  // CALENDRIER INTELLIGENT — Al Ghosia
-  // ══════════════════════════════════════════
-
-  // Tarifs de base (trajets fixes BYD, AMG = +35%)
-  const CAL_PRICES = {
-    byd:  { semaine: 50, weekend: 60  },
-    amg:  { semaine: 68, weekend: 82  },
-    bmw:  { semaine: 65, weekend: 78  },
-    audi: { semaine: 40, weekend: 48  },
+    window.open(`https://wa.me/33609241327?text=${encodeURIComponent(msg)}`, '_blank');
   };
+
+  // ══════════════════════════════════════════
+  // CALENDRIER INTELLIGENT
+  // ══════════════════════════════════════════
+
+  const CAL_PRICES = {
+    byd:  { semaine: 50, weekend: 60 },
+    amg:  { semaine: 68, weekend: 82 },
+    bmw:  { semaine: 65, weekend: 78 },
+    audi: { semaine: 40, weekend: 48 },
+  };
+
+  const CAL_LABELS = { byd:'BYD Seal', amg:'Mercedes AMG', bmw:'BMW Série 5', audi:'Audi A3' };
 
   const CRENEAUX = [
     { id: 'matin', label: 'Matin',      time: '06h00 – 12h00' },
@@ -1099,16 +1094,9 @@
   const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   const DAYS_FR   = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
 
-  // Storage
-  function loadStore() {
-    try { return JSON.parse(localStorage.getItem('alghosia_cal2') || '{}'); }
-    catch(e) { return {}; }
-  }
-  function saveStore(s) {
-    try { localStorage.setItem('alghosia_cal2', JSON.stringify(s)); } catch(e) {}
-  }
+  function loadStore() { try { return JSON.parse(localStorage.getItem('alghosia_cal2') || '{}'); } catch(e) { return {}; } }
+  function saveStore(s) { try { localStorage.setItem('alghosia_cal2', JSON.stringify(s)); } catch(e) {} }
 
-  // store format: { "2026-03-20": { blocked: true } | { byd: ['matin','soir'], amg: ['aprem'] } }
   let store = loadStore();
   let calDate = new Date();
   let selectedVehicle = 'byd';
@@ -1116,28 +1104,21 @@
   let selectedCreneau = null;
   let adminMode = false;
 
-  function dayKey(y, m, d) {
-    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  }
-  function isWeekend(y, m, d) {
-    const day = new Date(y, m, d).getDay();
-    return day === 0 || day === 6;
-  }
+  function dayKey(y, m, d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+  function isWeekend(y, m, d) { const day = new Date(y, m, d).getDay(); return day === 0 || day === 6; }
   function getPrice(vehicle, y, m, d) {
-    const base = isWeekend(y,m,d) ? CAL_PRICES[vehicle].weekend : CAL_PRICES[vehicle].semaine;
-    return base;
+    const p = CAL_PRICES[vehicle] || CAL_PRICES.byd;
+    return isWeekend(y, m, d) ? p.weekend : p.semaine;
   }
   function isSlotBooked(key, vehicle, creneauId) {
-    const entry = store[key];
-    if (!entry) return false;
-    if (entry.blocked) return true;
-    return entry[vehicle] && entry[vehicle].includes(creneauId);
+    const e = store[key];
+    if (!e) return false;
+    if (e.blocked) return true;
+    return e[vehicle] && e[vehicle].includes(creneauId);
   }
-  function isFullyBooked(key, vehicle) {
-    return CRENEAUX.every(c => isSlotBooked(key, vehicle, c.id));
-  }
+  function isFullyBooked(key, vehicle) { return CRENEAUX.every(c => isSlotBooked(key, vehicle, c.id)); }
 
-  function selectVehicle(v, btn) {
+  window.selectVehicle = function(v, btn) {
     selectedVehicle = v;
     document.querySelectorAll('.veh-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -1145,29 +1126,36 @@
     updatePriceBanner();
     renderCal();
     if (selectedDay) openCreneaux(selectedDay);
-  }
+  };
 
   function updatePriceBanner() {
-    const p = CAL_PRICES[selectedVehicle];
-    const vLabel = {byd:'BYD Seal',amg:'Mercedes AMG',bmw:'BMW Série 5',audi:'Audi A3'}[selectedVehicle] || 'BYD Seal'
-    document.getElementById('priceBanner').innerHTML = `
+    const pb = document.getElementById('priceBanner');
+    if (!pb) return;
+    const p = CAL_PRICES[selectedVehicle] || CAL_PRICES.byd;
+    const vLabel = CAL_LABELS[selectedVehicle] || 'BYD Seal';
+    pb.innerHTML = `
       <div class="price-pill">Semaine · ${vLabel} <strong>à partir de ${p.semaine} €</strong></div>
       <div class="price-pill">Week-end · ${vLabel} <strong>à partir de ${p.weekend} €</strong> <span style="font-size:.6rem;color:var(--text-muted)">+20%</span></div>
     `;
   }
 
   function renderCal() {
+    const grid = document.getElementById('calGrid');
+    if (!grid) return;
+
     const y = calDate.getFullYear();
     const m = calDate.getMonth();
     const today = new Date();
-    document.getElementById('calMonth').textContent = `${MONTHS_FR[m]} ${y}`;
 
-    const grid = document.getElementById('calGrid');
+    const monthEl = document.getElementById('calMonth');
+    if (monthEl) monthEl.textContent = `${MONTHS_FR[m]} ${y}`;
+
     grid.innerHTML = '';
 
     DAYS_FR.forEach(d => {
       const el = document.createElement('div');
-      el.className = 'cal-day-name'; el.textContent = d;
+      el.className = 'cal-day-name';
+      el.textContent = d;
       grid.appendChild(el);
     });
 
@@ -1175,7 +1163,8 @@
     let offset = firstDay.getDay() - 1;
     if (offset < 0) offset = 6;
     for (let i = 0; i < offset; i++) {
-      const el = document.createElement('div'); el.className = 'cal-day empty';
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
       grid.appendChild(el);
     }
 
@@ -1184,36 +1173,36 @@
       const el = document.createElement('div');
       el.className = 'cal-day';
       const key = dayKey(y, m, d);
-      const isPast = new Date(y,m,d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const isTdy  = d === today.getDate() && m === today.getMonth() && y === today.getFullYear();
-      const isWE   = isWeekend(y, m, d);
+      const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const thisDate  = new Date(y, m, d);
+      const isPast    = thisDate < todayDate;
+      const isTdy     = thisDate.getTime() === todayDate.getTime();
+      const isWE      = isWeekend(y, m, d);
+      const entry     = store[key];
       const fullyBooked = isFullyBooked(key, selectedVehicle);
-      const entry = store[key];
-      const hasAnyBooked = entry && !entry.blocked && entry[selectedVehicle] && entry[selectedVehicle].length > 0;
+      const hasBooked = entry && !entry.blocked && entry[selectedVehicle] && entry[selectedVehicle].length > 0;
 
-      if (isPast)         el.classList.add('past');
-      if (isTdy)          el.classList.add('today');
-      if (isWE)           el.classList.add('weekend');
-      if (fullyBooked)    el.classList.add('indispo');
-      if (hasAnyBooked)   el.classList.add('has-booked');
+      if (isPast)       el.classList.add('past');
+      if (isTdy)        el.classList.add('today');
+      if (isWE)         el.classList.add('weekend');
+      if (fullyBooked)  el.classList.add('indispo');
+      if (hasBooked)    el.classList.add('has-booked');
       if (selectedDay === key) el.classList.add('selected');
 
-      // Slot dots
       const dots = CRENEAUX.map(c =>
         `<span class="slot-dot${isSlotBooked(key, selectedVehicle, c.id) ? ' booked' : ''}"></span>`
       ).join('');
-
       const tag = fullyBooked ? 'Complet' : isWE ? 'WE' : '';
-      el.innerHTML = `
-        <span class="day-num">${d}</span>
-        ${tag ? `<span class="day-tag">${tag}</span>` : `<div class="day-slots">${dots}</div>`}
-      `;
+      el.innerHTML = `<span class="day-num">${d}</span>${tag ? `<span class="day-tag">${tag}</span>` : `<div class="day-slots">${dots}</div>`}`;
 
       if (!isPast && !fullyBooked) {
         el.addEventListener('click', () => {
-          selectedDay = key; selectedCreneau = null;
-          document.getElementById('calRecap').classList.remove('visible');
-          document.getElementById('calBookBtn').classList.remove('visible');
+          selectedDay = key;
+          selectedCreneau = null;
+          const recap = document.getElementById('calRecap');
+          const btn   = document.getElementById('calBookBtn');
+          if (recap) recap.classList.remove('visible');
+          if (btn)   btn.classList.remove('visible');
           renderCal();
           openCreneaux(key);
         });
@@ -1223,28 +1212,25 @@
   }
 
   function openCreneaux(key) {
-    const [y, m, d] = key.split('-');
-    const dateStr = `${d}/${m}/${y}`;
-    const isWE = isWeekend(parseInt(y), parseInt(m)-1, parseInt(d));
-    const price = getPrice(selectedVehicle, parseInt(y), parseInt(m)-1, parseInt(d));
-    const vLabel = {byd:'BYD Seal',amg:'Mercedes AMG',bmw:'BMW Série 5',audi:'Audi A3'}[selectedVehicle] || 'BYD Seal'
-
-    document.getElementById('creneauxTitle').textContent = `${dateStr} · ${vLabel} · ${isWE ? 'Week-end' : 'Semaine'}`;
     const wrap = document.getElementById('creneauxWrap');
-    wrap.classList.add('visible');
+    const titleEl = document.getElementById('creneauxTitle');
+    const cgrid = document.getElementById('creneauxGrid');
+    if (!wrap || !titleEl || !cgrid) return;
 
-    const grid = document.getElementById('creneauxGrid');
-    grid.innerHTML = '';
+    const [y, mo, d] = key.split('-');
+    const isWE = isWeekend(parseInt(y), parseInt(mo)-1, parseInt(d));
+    const price = getPrice(selectedVehicle, parseInt(y), parseInt(mo)-1, parseInt(d));
+    const vLabel = CAL_LABELS[selectedVehicle] || 'BYD Seal';
+
+    titleEl.textContent = `${d}/${mo}/${y} · ${vLabel} · ${isWE ? 'Week-end' : 'Semaine'}`;
+    wrap.classList.add('visible');
+    cgrid.innerHTML = '';
 
     CRENEAUX.forEach(c => {
       const booked = isSlotBooked(key, selectedVehicle, c.id);
       const el = document.createElement('div');
       el.className = `creneau${booked ? ' booked-c' : ''}`;
-      el.innerHTML = `
-        <span class="c-label">${c.label}</span>
-        <span class="c-time">${c.time}</span>
-        <span class="c-price">à partir de ${price} €</span>
-      `;
+      el.innerHTML = `<span class="c-label">${c.label}</span><span class="c-time">${c.time}</span><span class="c-price">à partir de ${price} €</span>`;
       if (!booked) {
         el.addEventListener('click', () => {
           document.querySelectorAll('.creneau').forEach(e => e.classList.remove('selected-c'));
@@ -1253,33 +1239,33 @@
           showRecap(key, c, price, vLabel, isWE);
         });
       }
-      grid.appendChild(el);
+      cgrid.appendChild(el);
     });
   }
 
   function showRecap(key, creneau, price, vLabel, isWE) {
-    const [y, m, d] = key.split('-');
     const recap = document.getElementById('calRecap');
+    const btn   = document.getElementById('calBookBtn');
+    if (!recap) return;
+    const [y, mo, d] = key.split('-');
     recap.classList.add('visible');
     recap.innerHTML = `
       <div class="recap-row"><span class="recap-label">Véhicule</span><span class="recap-val">${vLabel}</span></div>
-      <div class="recap-row"><span class="recap-label">Date</span><span class="recap-val">${d}/${m}/${y} ${isWE ? '· Week-end' : '· Semaine'}</span></div>
+      <div class="recap-row"><span class="recap-label">Date</span><span class="recap-val">${d}/${mo}/${y} ${isWE ? '· Week-end' : '· Semaine'}</span></div>
       <div class="recap-row"><span class="recap-label">Créneau</span><span class="recap-val">${creneau.label} (${creneau.time})</span></div>
       <div class="recap-row" style="margin-top:.8rem;border-top:1px solid var(--border);padding-top:.8rem;">
         <span class="recap-label">Prix de départ</span><span class="recap-price">${price} €</span>
-      </div>
-    `;
-    document.getElementById('calBookBtn').classList.add('visible');
+      </div>`;
+    if (btn) btn.classList.add('visible');
   }
 
-  function bookFromCal(e) {
+  window.bookFromCal = function(e) {
     e.preventDefault();
     if (!selectedDay || !selectedCreneau) return;
     const [y, mo, d] = selectedDay.split('-');
-    const vLabel = {byd:'BYD Seal',amg:'Mercedes AMG',bmw:'BMW Série 5',audi:'Audi A3'}[selectedVehicle] || 'BYD Seal'
-    const price = getPrice(selectedVehicle, parseInt(y), parseInt(mo)-1, parseInt(d));
+    const vLabel = CAL_LABELS[selectedVehicle] || 'BYD Seal';
+    const price  = getPrice(selectedVehicle, parseInt(y), parseInt(mo)-1, parseInt(d));
 
-    // Mark slot as booked in store
     if (!store[selectedDay]) store[selectedDay] = {};
     if (!store[selectedDay][selectedVehicle]) store[selectedDay][selectedVehicle] = [];
     if (!store[selectedDay][selectedVehicle].includes(selectedCreneau.id)) {
@@ -1288,7 +1274,6 @@
     saveStore(store);
     renderCal();
 
-    // Send WhatsApp
     const msg =
       `*Reservation Al Ghosia Transport*\n\n` +
       `*Vehicule :* ${vLabel}\n` +
@@ -1297,45 +1282,49 @@
       `*Prix de depart :* ${price} EUR\n\n` +
       `Merci de confirmer et de preciser le trajet.`;
     window.open(`https://wa.me/33609241327?text=${encodeURIComponent(msg)}`, '_blank');
-  }
+  };
 
-  function toggleAdmin() {
+  window.toggleAdmin = function() {
     adminMode = !adminMode;
-    document.getElementById('adminPanel').classList.toggle('visible', adminMode);
-  }
+    const panel = document.getElementById('adminPanel');
+    if (panel) panel.classList.toggle('visible', adminMode);
+  };
 
-  function setDay(action) {
+  window.setDay = function(action) {
     if (!selectedDay) { alert('Cliquez d\'abord sur un jour.'); return; }
-    if (action === 'indispo') {
-      store[selectedDay] = { blocked: true };
-    } else {
-      delete store[selectedDay];
-    }
+    if (action === 'indispo') { store[selectedDay] = { blocked: true }; }
+    else { delete store[selectedDay]; }
     saveStore(store);
     renderCal();
-    document.getElementById('creneauxWrap').classList.remove('visible');
-    document.getElementById('calRecap').classList.remove('visible');
-    document.getElementById('calBookBtn').classList.remove('visible');
-  }
+    ['creneauxWrap','calRecap','calBookBtn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('visible');
+    });
+  };
 
-  document.getElementById('prevBtn').addEventListener('click', () => {
+  // Calendar nav buttons
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  if (prevBtn) prevBtn.addEventListener('click', () => {
     calDate.setMonth(calDate.getMonth() - 1);
     selectedDay = null; selectedCreneau = null;
-    document.getElementById('creneauxWrap').classList.remove('visible');
-    document.getElementById('calRecap').classList.remove('visible');
-    document.getElementById('calBookBtn').classList.remove('visible');
+    ['creneauxWrap','calRecap','calBookBtn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('visible');
+    });
     renderCal();
   });
-  document.getElementById('nextBtn').addEventListener('click', () => {
+  if (nextBtn) nextBtn.addEventListener('click', () => {
     calDate.setMonth(calDate.getMonth() + 1);
     selectedDay = null; selectedCreneau = null;
-    document.getElementById('creneauxWrap').classList.remove('visible');
-    document.getElementById('calRecap').classList.remove('visible');
-    document.getElementById('calBookBtn').classList.remove('visible');
+    ['creneauxWrap','calRecap','calBookBtn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('visible');
+    });
     renderCal();
   });
 
-  // Init
+  // Init calendrier
   updatePriceBanner();
   renderCal();
 
@@ -1357,6 +1346,7 @@
       observer.observe(el);
     });
 
+}); // end DOMContentLoaded
 </script>
 </body>
 </html>
